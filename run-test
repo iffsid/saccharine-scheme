@@ -1,0 +1,7 @@
+#!/bin/bash
+
+./node_modules/sweet.js/bin/sjs \
+    -r \
+    --load-readtable ./src/readtable-mod.js \
+    --module ./src/saccharin.sjs \
+    ./src/test-exprs.js

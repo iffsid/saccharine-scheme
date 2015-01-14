@@ -1,0 +1,25 @@
+{
+  "name": "saccharine-scheme",
+  "version": "0.0.1",
+  "description": "A Scheme built on top of sweetjs macros",
+  "main": "index.js",
+  "dependencies": {
+    "sweet.js": "^0.7.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/iffsid/saccharine-scheme"
+  },
+  "keywords": [
+    "scheme",
+    "macros",
+    "sweetjs",
+    "js"
+  ],
+  "author": "Siddharth N",
+  "license": "BSD"
+}
