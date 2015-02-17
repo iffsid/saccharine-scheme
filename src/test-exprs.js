@@ -1,10 +1,15 @@
 // -*- mode: js; fill-column: 79; -*-
 
-// tests
+tests
 sexp (list 1 2 3 4)
-// sexp (quote (1 2 3 4))
+sexp 'a
+sexp '100
+sexp '(1 2 3 4)
+sexp '(1 2 3 foob)
+// sexp (foo-bar 10)
 sexp (list (add 3 4) 2 3 4)
 sexp (+ 1 2 3 4)
+sexp (- 1 2 3 4)
 sexp (* 1 2 3 4)
 sexp (/ 1 2 3 4)
 sexp (and foo bar)

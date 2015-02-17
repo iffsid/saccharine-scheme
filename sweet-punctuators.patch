@@ -1,0 +1,11 @@
+--- node_modules/sweet.js/lib/parser.js	2015-02-17 15:34:46.167310906 -0800
++++ node_modules/sweet.js/lib/parser.js	2015-02-17 13:50:32.610225690 -0800
+@@ -4365,7 +4365,7 @@
+         // rest of the stream.
+         queued: [],
+         // A readtable can only override punctuators
+-        punctuators: ';,.:!?~=%&*+-/<>^|#@',
++        punctuators: ';,.:!?~=%&*+-/<>^|#@\'', // iffsid: single quote (') hack
+         has: function (ch) {
+             return readtables.currentReadtable[ch] && readtables.punctuators.indexOf(ch) !== -1;
+         },

@@ -128,6 +128,17 @@ macro sexp {
   }
   // scheme list/vector --> js array
   case {_ ($bd:bdata $e:invokeRec(sexp) ...)} => {return #{[$e (,) ...]}}
+  // quote
+  // if identifier, stringify
+  case {_ quote $e:ident} => {
+    return [makeValue(unwrapSyntax(#{$e}), #{here})]
+  }
+  // if literal, pass through
+  case {_ quote $e:lit} => {return #{$e}}
+  // if sexp, map quote through it -- this doesn't error of quotes are nested
+  case {_ quote($e ...)} => {
+    return #{[$(sexp quote $e) (,) ...]}
+  }
   // fn application
   // needswork: invalidate keywords
   case {_ ($fn $args ...)} => {
