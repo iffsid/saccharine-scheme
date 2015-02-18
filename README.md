@@ -10,3 +10,4 @@ Instructions:
 
 - npm install
 - patch -p0 < sweet-punctuators.patch
+- ./run-test

@@ -4,4 +4,4 @@
     -r \
     --load-readtable ./src/readtable-mod.js \
     --module ./src/saccharin.sjs \
-    ./src/test-exprs.js
+    <(./srctx ./src/test-exprs.js)
