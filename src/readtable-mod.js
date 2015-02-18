@@ -2,30 +2,26 @@
 var sweet = require("sweet.js")
 
 var readtable = sweet.currentReadtable().extend({
+  // negative numbers get wrapped up in sexps
+  "-": function(ch, reader) {
+    reader.readPunctuator();
+    if (reader.source[reader.index].charCodeAt(0) != 32) {
+      var num = reader.readNumericLiteral();
+      return reader.makeDelimiter('()', [reader.makePunctuator('-'), num]);
+    } else {
+      return null;
+    }
+  },
   "/": function(ch, reader) {
     reader.readPunctuator();
     return reader.makeIdentifier('div');
   },
   "'": function(ch, reader) {
     reader.index++;
-    return reader.makeIdentifier('quote');
-  },
-  // "-": function(ch, reader) {
-  //   var src = reader.source;
-  //   var ccode = function(i){return src[i].charCodeAt(0);};
-  //   if (reader.isIdentifierPart(ccode(reader.index-1))) {
-  //     var nxti = reader.index+1;
-  //     reader.index--;
-  //     while (reader.isIdentifierPart(ccode(reader.index))) {reader.index--}
-  //     reader.index++;
-  //     var pre = reader.readIdentifier();
-  //     reader.index = nxti;
-  //     var post = reader.isIdentifierPart(ccode(nxti)) ? reader.readIdentifier() : {value: ""};
-  //     return reader.makeIdentifier(pre.value + "_" + post.value)
-  //   } else {
-  //     return null;
-  //   }
-  // }
+    var quoted = reader.readToken();
+    var q = reader.makeIdentifier('quote');
+    return reader.makeDelimiter('()', [q, quoted])
+  }
 })
 
 module.exports = readtable;

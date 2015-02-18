@@ -8,8 +8,8 @@ macro bdata {
 
 macro letFamily {
   rule { let }
-  // * needs to be contextually expanded to a js-safe identifier char
-  // rule { let* }
+  // * replaced by $$
+  rule { let$$ }
   rule { letrec }
 }
 
@@ -21,34 +21,37 @@ macro letFamily {
  */
 
 macro sexp {
+  case {_ ()} => {return #{[]}}
   // booleans
   case {_ #t} => {return #{true}}
   case {_ #f} => {return #{false}}
   // operators
-  case {_ (+ $e:invokeRec(sexp) ...)} => {return #{plus($e (,) ...)}}
-  case {_ (- $e:invokeRec(sexp) ...)} => {return #{minus($e (,) ...)}}
-  case {_ (* $e:invokeRec(sexp) ...)} => {return #{mul($e (,) ...)}}
+  case {_ +} => {return #{plus}}
+  case {_ -} => {return #{minus}}
+  case {_ *} => {return #{mul}}
   // `\` is handled by readtable and is renamed to `div`
-  case {_ (div $e:invokeRec(sexp) ...)} => {return #{div($e (,) ...)}}
-  case {_ (= $e:invokeRec(sexp) ...)} => {return #{eq($e (,) ...)}}
-  case {_ (> $e:invokeRec(sexp) ...)} => {return #{gt($e (,) ...)}}
-  case {_ (< $e:invokeRec(sexp) ...)} => {return #{lt($e (,) ...)}}
-  case {_ (>= $e:invokeRec(sexp) ...)} => {return #{geq($e (,) ...)}}
-  case {_ (<= $e:invokeRec(sexp) ...)} => {return #{leq($e (,) ...)}}
-  // // control flow
+  case {_ =} => {return #{eq}}
+  case {_ >} => {return #{gt}}
+  case {_ <} => {return #{lt}}
+  case {_ >=} => {return #{geq}}
+  case {_ <=} => {return #{leq}}
+  // control flow -- case not iplemented because of keyword
+  case {_ else} => {return #{true}}
+  case {_ otherwise} => {return #{true}}
   case {_ (if $cond:invokeRec(sexp) $te ...)} => {
     if (#{$te ...}.length !== 2) {
       throwSyntaxError("saccharine-scheme",
 		       "'if' takes exactly one 'then' and one 'else' clause.",
                        #{$te ...})
     }
-    letstx $then ... = #{$te ...}.slice(0,1);
-    letstx $else ... = #{$te ...}.slice(1,2);
+    letstx $then = #{$te ...}.slice(0,1);
+    letstx $else = #{$te ...}.slice(1,2);
     return #{
-      if ($cond) { scheme {$then ...} } else { scheme {$else ...} }
+      // if ($cond) { scheme {$then ...} } else { scheme {$else ...} }
+      $cond ? sexp $then : sexp $else
     }
   }
-  case {_ (cond ( ($($cond:invokeRec(sexp) $body ...))  ... ))} => {
+  case {_ (cond $(($cond:invokeRec(sexp) $body ...))  ... )} => {
     return #{$(if ($cond) {scheme {$body ...}}) (else) ...}
   }
   case {_ (when $cond:invokeRec(sexp) $body ...)} => {
@@ -70,9 +73,10 @@ macro sexp {
   }
   case {_ ($lf:letFamily (($($id $val:invokeRec(sexp))) ...) $body ...)} => {
     return #{
-      (function ($id (,) ...) {
+      (function () {
+	$(var $id = $val) (;) ...
   	scheme {$body ...}
-      }($val (,) ...))
+      }())
     }
   }
   case {_ (begin $body ...)} => {
@@ -129,16 +133,14 @@ macro sexp {
   // scheme list/vector --> js array
   case {_ ($bd:bdata $e:invokeRec(sexp) ...)} => {return #{[$e (,) ...]}}
   // quote
-  // if identifier, stringify
-  case {_ quote $e:ident} => {
-    return [makeValue(unwrapSyntax(#{$e}), #{here})]
-  }
   // if literal, pass through
-  case {_ quote $e:lit} => {return #{$e}}
+  case {_ (quote ())} => {return #{[]}}
+  case {_ (quote $e:lit)} => {return #{$e}}
   // if sexp, map quote through it -- this doesn't error of quotes are nested
-  case {_ quote($e ...)} => {
-    return #{[$(sexp quote $e) (,) ...]}
-  }
+  case {_ (quote ($e ...))} => {return #{[$(sexp (quote $e)) (,) ...]}}
+  // otherwise, stringify
+  case {_ (quote $e)} => {return [makeValue(unwrapSyntax(#{$e}), #{here})]}
+  // case {_ (apply $fn $args ...)} => {return #{sexp ($fn $args ...)}}
   // fn application
   // needswork: invalidate keywords
   case {_ ($fn $args ...)} => {
