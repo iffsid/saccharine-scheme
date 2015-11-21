@@ -13,6 +13,11 @@ macro letFamily {
   rule { letrec }
 }
 
+macro webchurchInfer {
+  rule { mh_query }
+  rule { hmc_query }
+}
+
 /*
   Needswork:
   1. plus, minus, mult, div, and, or, not, nor, xnor, lt, gt, leq, geq, eq, equal
@@ -21,6 +26,7 @@ macro letFamily {
  */
 
 macro sexp {
+  case {_ eval} => {return #{_ssc_eval}}
   case {_ ()} => {return #{[]}}
   // booleans
   case {_ #t} => {return #{true}}
@@ -132,15 +138,39 @@ macro sexp {
   }
   // scheme list/vector --> js array
   case {_ ($bd:bdata $e:invokeRec(sexp) ...)} => {return #{[$e (,) ...]}}
+  // webchurch inference restructuring
+  case {_ ($wc:webchurchInfer $args ...)} => {
+    var _len = #{$args ...}.length;
+    // everything until the first `define` is params
+    var isDefineNode = function(o) {
+      return (o.token.type === 11 &&               // delimiter
+	      o.token.inner[0].token.type === 3 && // identifier
+	      o.token.inner[0].token.value === "define")
+    }
+    var _params = [], i = 0;
+    while(i < _len) {
+      var o = #{$args ...}[i++];
+      if (!isDefineNode(o)) {_params.push(o);} else {i += _len}
+    };
+    letstx $params ... = _params;
+    letstx $defs ... = #{$args ...}.slice(_params.length, -2);
+    letstx $query = [#{$args ...}[_len - 2]];
+    letstx $conditional = [#{$args ...}[_len - 1]]
+    return #{
+      $wc((function(){scheme {$defs ... (condition $conditional) $query}}), sexp $params (,) ...)
+    }
+  }
   // quote
   // if literal, pass through
   case {_ (quote ())} => {return #{[]}}
   case {_ (quote $e:lit)} => {return #{$e}}
-  // if sexp, map quote through it -- this doesn't error of quotes are nested
-  case {_ (quote ($e ...))} => {return #{[$(sexp (quote $e)) (,) ...]}}
+  // if sexp, map quote through it -- this doesn't error if quotes are nested
+  case {_ (quote ($e ...))} => {
+    // console.log(#{$e ...})
+    return #{[$(sexp (quote $e)) (,) ...]}
+  }
   // otherwise, stringify
   case {_ (quote $e)} => {return [makeValue(unwrapSyntax(#{$e}), #{here})]}
-  // case {_ (apply $fn $args ...)} => {return #{sexp ($fn $args ...)}}
   // fn application
   // needswork: invalidate keywords
   case {_ ($fn $args ...)} => {

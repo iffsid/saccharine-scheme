@@ -19,7 +19,9 @@ var readtable = sweet.currentReadtable().extend({
   "'": function(ch, reader) {
     reader.index++;
     var quoted = reader.readToken();
+    // console.log("quoted = ", quoted);
     var q = reader.makeIdentifier('quote');
+    // console.log("new = ",reader.makeDelimiter('()', [q, quoted])); debugger;
     return reader.makeDelimiter('()', [q, quoted])
   }
 })

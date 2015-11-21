@@ -1,14 +1,16 @@
-// -*- mode: js; fill-column: 79; -*-
-
-// tests
 sexp -2
-sexp (list 1 2 3 4)
 sexp 'a
+sexp ''a
+sexp '(* 2 3)
+sexp ''(* 1 2)
+sexp (eval 3)
+sexp (eval '(* 2 3))
 sexp '-2
 sexp '100
 sexp '(1 2 3 4)
 sexp '(1 2 3 foob)
 sexp (foo-bar 10)
+sexp (list 1 2 3 4)
 sexp (list (add 3 4) 2 3 4)
 sexp (+ 1 2)
 sexp (+ 1 2 3 4)
@@ -77,4 +79,23 @@ schemeG {
 	   (sqrt (+ (sqr (- (x a) (x b))) (sqr (- (y a) (y b))))))))
     (div (sum (map2 euDist newL oldL)) (length oldL))))
   (costFn (list (list 1 2) (list 3 4) (list 5 5)))
+}
+
+schemeG {
+  (mh-query
+   (begin 10 1)
+   10
+   100
+   (define x (gaussian 0 1))
+   (define y 20)
+   (+ x y)
+   (> x 0))
+}
+
+schemeG {
+  ''a
+  (eval '(+ 2 1 2))
+  (eval ''(+ 1 2))
+  (define a '(* 2 3))
+  (eval a)
 }
