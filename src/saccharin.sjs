@@ -21,8 +21,10 @@ macro webchurchInfer {
 /*
   Needswork:
   1. plus, minus, mult, div, and, or, not, nor, xnor, lt, gt, leq, geq, eq, equal
-     need to act on any number of arguments
+     need to act on any number of arguments and be provided as a compatibility layer
      distinguish the fn names, maybe as __plus__ ?
+  2. Fixup quote, unquote, and unquote splicing
+  3. Do keyword checking on the scheme backend
  */
 
 macro sexp {
