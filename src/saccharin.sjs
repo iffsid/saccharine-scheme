@@ -16,6 +16,8 @@ macro letFamily {
 macro webchurchInfer {
   rule { mh_query }
   rule { hmc_query }
+  rule { enumeration_query }
+  rule { rejection_query }
 }
 
 /*
@@ -49,16 +51,18 @@ macro sexp {
   case {_ (if $cond:invokeRec(sexp) $te ...)} => {
     if (#{$te ...}.length !== 2) {
       throwSyntaxError("saccharine-scheme",
-		       "'if' takes exactly one 'then' and one 'else' clause.",
+  		       "'if' takes exactly one 'then' and one 'else' clause.",
                        #{$te ...})
     }
     letstx $then = #{$te ...}.slice(0,1);
     letstx $else = #{$te ...}.slice(1,2);
     return #{
-      // if ($cond) { scheme {$then ...} } else { scheme {$else ...} }
-      $cond ? sexp $then : sexp $else
+      ($cond ? sexp $then : sexp $else)
     }
   }
+  // case {_ (if $cond:invokeRec(sexp) $then:invokeRec(sexp) $else:invokeRec(sexp))} => {
+  //   return #{($cond ? $then : $else)}
+  // }
   case {_ (cond $(($cond:invokeRec(sexp) $body ...))  ... )} => {
     return #{$(if ($cond) {scheme {$body ...}}) (else) ...}
   }
@@ -154,8 +158,17 @@ macro sexp {
       var o = #{$args ...}[i++];
       if (!isDefineNode(o)) {_params.push(o);} else {i += _len}
     };
+    var _defs = #{$args ...}.slice(_params.length, -2);
+    if (_defs.length === 0) {
+      throwSyntaxError("saccharine-scheme",
+  		       "Queries must have at least one definition.",
+                       #{$args ...})
+    }
+    if (_params.length === 0) {
+      _params.push(makeIdent(undefined, #{here}));
+    }
     letstx $params ... = _params;
-    letstx $defs ... = #{$args ...}.slice(_params.length, -2);
+    letstx $defs ... = _defs
     letstx $query = [#{$args ...}[_len - 2]];
     letstx $conditional = [#{$args ...}[_len - 1]]
     return #{
