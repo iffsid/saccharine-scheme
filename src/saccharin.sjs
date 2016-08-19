@@ -18,6 +18,11 @@ macro webchurchInfer {
   rule { hmc_query }
 }
 
+macro webchurchNoParamsInfer {
+  rule { rejection_query }
+  rule { enumeration_query }
+}
+
 /*
   Needswork:
   1. plus, minus, mult, div, and, or, not, nor, xnor, lt, gt, leq, geq, eq, equal
@@ -160,6 +165,27 @@ macro sexp {
     letstx $conditional = [#{$args ...}[_len - 1]]
     return #{
       $wc((function(){scheme {$defs ... (condition $conditional) $query}}), sexp $params (,) ...)
+    }
+  }
+  case {_ ($wc:webchurchNoParamsInfer $args ...)} => {
+    var _len = #{$args ...}.length;
+    // // everything until the first `define` is params
+    // var isDefineNode = function(o) {
+    //   return (o.token.type === 11 &&               // delimiter
+	  //     o.token.inner[0].token.type === 3 && // identifier
+	  //     o.token.inner[0].token.value === "define")
+    // }
+    // var _params = [], i = 0;
+    // while(i < _len) {
+    //   var o = #{$args ...}[i++];
+    //   if (!isDefineNode(o)) {_params.push(o);} else {i += _len}
+    // };
+    // letstx $params ... = _params;
+    letstx $defs ... = #{$args ...}.slice(0, -2);
+    letstx $query = [#{$args ...}[_len - 2]];
+    letstx $conditional = [#{$args ...}[_len - 1]]
+    return #{
+      $wc((function(){scheme {$defs ... (condition $conditional) $query}}))
     }
   }
   // quote
